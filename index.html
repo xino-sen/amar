@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AMAR CANNED GOODS | Elite Terminal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            black: '#050705',
+                            dark: '#0B0F0B',
+                            moss: '#86EFAC',
+                            forest: '#14532D',
+                            border: 'rgba(134, 239, 172, 0.15)',
+                            glass: 'rgba(15, 20, 15, 0.85)',
+                            gold: '#FDE68A'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        [x-cloak] { display: none !important; }
+        body { 
+            background-color: #050705; 
+            color: #F8FAFC; 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            overflow: hidden; 
+            height: 100vh;
+        }
+        
+        .glass-panel { 
+            background: rgba(15, 20, 15, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(134, 239, 172, 0.1);
+        }
+
+        .cyber-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .cyber-card:hover {
+            border-color: rgba(134, 239, 172, 0.4);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(134, 239, 172, 0.2); border-radius: 10px; }
+
+        .modal-blur { backdrop-filter: blur(12px); background: rgba(0,0,0,0.8); }
+
+        @keyframes successPulse {
+            0% { box-shadow: 0 0 0 0 rgba(134, 239, 172, 0.4); }
+            70% { box-shadow: 0 0 0 20px rgba(134, 239, 172, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(134, 239, 172, 0); }
+        }
+        .animate-success { animation: successPulse 1s infinite; }
+    </style>
+</head>
+
+<body class="p-4 lg:p-6" x-data="veloxPOS()">
+
+    <div class="fixed top-6 right-6 z-[200] flex flex-col gap-3">
+        <template x-for="toast in toasts" :key="toast.id">
+            <div x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 translate-x-12"
+                 x-transition:enter-end="opacity-100 translate-x-0"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0 scale-90"
+                 class="glass-panel px-6 py-4 rounded-2xl border-l-4 border-l-cyber-moss flex items-center gap-4 shadow-2xl">
+                <div class="w-8 h-8 rounded-full bg-cyber-moss/20 flex items-center justify-center text-cyber-moss">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-black uppercase tracking-widest text-white" x-text="toast.title"></p>
+                    <p class="text-[10px] text-slate-400 font-mono" x-text="toast.msg"></p>
+                </div>
+            </div>
+        </template>
+    </div>
+
+    <div x-show="showConfig" x-cloak class="fixed inset-0 z-[100] flex items-center justify-center p-4 modal-blur" x-transition.opacity>
+        <div class="glass-panel w-full max-w-md rounded-[2.5rem] p-8 border border-cyber-moss/30 shadow-2xl relative overflow-hidden" @click.away="!isAdding && (showConfig = false)">
+            
+            <div x-show="isAdding" x-transition.opacity class="absolute inset-0 bg-cyber-black/95 z-10 flex flex-col items-center justify-center text-center p-8">
+                <div class="w-20 h-20 rounded-full bg-cyber-moss flex items-center justify-center text-cyber-black text-3xl mb-4 animate-success">
+                    <i class="fas fa-check"></i>
+                </div>
+                <h2 class="text-2xl font-black uppercase italic">Log Updated</h2>
+                <p class="text-cyber-moss font-mono text-sm mt-2">Inventory Batch Synced</p>
+            </div>
+
+            <template x-if="selectedProduct">
+                <div class="space-y-6">
+                    <div class="flex items-center gap-6">
+                        <div class="w-24 h-24 bg-black/40 rounded-3xl p-4 border border-white/10 flex items-center justify-center">
+                            <img :src="selectedProduct.img" class="max-w-full max-h-full object-contain">
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-extrabold text-white leading-tight" x-text="selectedProduct.name"></h2>
+                            <p class="text-cyber-moss font-mono text-lg">₱<span x-text="selectedProduct.price.toFixed(2)"></span></p>
+                        </div>
+                    </div>
+
+                    <div class="bg-black/40 rounded-2xl p-6 border border-white/5">
+                        <label class="text-[10px] font-mono text-slate-500 uppercase tracking-widest block mb-4">Quantity Control</label>
+                        <div class="flex items-center justify-between gap-4">
+                            <button @click="configQty > 1 ? configQty-- : null" class="w-14 h-14 rounded-xl bg-white/5 flex items-center justify-center hover:bg-red-500/20 hover:text-red-400 transition-all text-xl">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <span class="text-5xl font-black font-mono text-white" x-text="configQty"></span>
+                            <button @click="configQty++" class="w-14 h-14 rounded-xl bg-white/5 flex items-center justify-center hover:bg-cyber-moss/20 hover:text-cyber-moss transition-all text-xl">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2 mt-6">
+                            <button @click="configQty = 5" class="py-2 rounded-lg bg-white/5 text-[10px] font-bold hover:bg-white/10">+5</button>
+                            <button @click="configQty = 10" class="py-2 rounded-lg bg-white/5 text-[10px] font-bold hover:bg-white/10">+10</button>
+                            <button @click="configQty = 24" class="py-2 rounded-lg bg-white/5 text-[10px] font-bold hover:bg-white/10">CASE (24)</button>
+                        </div>
+                    </div>
+
+                    <button @click="confirmAddToCart()" 
+                            class="w-full py-5 bg-cyber-moss text-cyber-black font-black rounded-2xl shadow-xl hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-widest flex items-center justify-center gap-3">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Confirm ₱<span x-text="calculateConfigTotal()"></span></span>
+                    </button>
+                    
+                    <button @click="showConfig = false" class="w-full text-[10px] font-bold text-slate-500 hover:text-white transition-colors uppercase tracking-widest">
+                        Cancel Operation
+                    </button>
+                </div>
+            </template>
+        </div>
+    </div>
+
+    <div class="flex h-full w-full gap-6">
+        <nav class="hidden lg:flex flex-col w-20 glass-panel rounded-[2.5rem] items-center py-12 justify-between shrink-0 border border-cyber-border">
+            <div class="flex flex-col gap-10 items-center">
+                <div class="w-12 h-12 rounded-full bg-cyber-moss flex items-center justify-center text-cyber-black shadow-[0_0_15px_rgba(134,239,172,0.4)]">
+                    <i class="fas fa-bolt text-xl"></i>
+                </div>
+                <div class="flex flex-col gap-8 text-slate-500">
+                    <button class="hover:text-cyber-moss transition-colors"><i class="fas fa-th-large text-xl text-cyber-moss"></i></button>
+                    <button class="hover:text-white transition-colors"><i class="fas fa-history text-xl"></i></button>
+                    <button class="hover:text-white transition-colors"><i class="fas fa-cog text-xl"></i></button>
+                </div>
+            </div>
+            <button class="text-slate-600 hover:text-red-400 transition-colors"><i class="fas fa-sign-out-alt text-xl"></i></button>
+        </nav>
+
+        <main class="flex-1 flex flex-col min-w-0">
+            <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                <div>
+                    <h1 class="text-4xl font-black tracking-tighter uppercase italic">Amar<span class="text-white/20">Terminal</span></h1>
+                    <div class="flex gap-6 mt-4 overflow-x-auto no-scrollbar pb-2">
+                        <template x-for="cat in categories" :key="cat">
+                            <button @click="activeCat = cat" 
+                                    :class="activeCat === cat ? 'text-cyber-moss border-cyber-moss' : 'text-slate-500 border-transparent hover:text-slate-300'"
+                                    class="text-[11px] font-black uppercase tracking-[0.2em] border-b-2 pb-2 transition-all whitespace-nowrap" 
+                                    x-text="cat"></button>
+                        </template>
+                    </div>
+                </div>
+                <div class="relative group">
+                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-cyber-moss transition-colors"></i>
+                    <input type="text" x-model="search" placeholder="SCAN OR SEARCH..." class="bg-white/5 border border-white/10 rounded-2xl pl-12 pr-6 py-4 w-full md:w-80 outline-none focus:border-cyber-moss/40 focus:bg-white/[0.08] transition-all font-mono text-sm">
+                </div>
+            </header>
+
+            <div class="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 lg:gap-6">
+                    <template x-for="product in filteredProducts" :key="product.id">
+                        <div @click="openConfig(product)" class="cyber-card rounded-[2.5rem] p-5 cursor-pointer relative group">
+                            <div class="aspect-square bg-black/40 rounded-3xl p-6 mb-4 relative overflow-hidden flex items-center justify-center">
+                                <img :src="product.img" class="max-w-full max-h-full object-contain filter drop-shadow-2xl group-hover:scale-110 transition-all duration-500">
+                                <div class="absolute inset-0 bg-cyber-moss/0 group-hover:bg-cyber-moss/5 transition-all"></div>
+                            </div>
+                            <h3 class="font-bold text-sm truncate px-1 text-slate-200" x-text="product.name"></h3>
+                            <div class="flex justify-between items-center mt-3 px-1">
+                                <span class="font-mono font-bold text-cyber-moss">₱<span x-text="product.price.toFixed(2)"></span></span>
+                                <div class="w-9 h-9 rounded-xl border border-white/10 flex items-center justify-center text-xs group-hover:bg-cyber-moss group-hover:text-black group-hover:border-cyber-moss transition-all shadow-lg">
+                                    <i class="fas fa-plus"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </main>
+
+        <aside class="hidden xl:flex flex-col w-[420px] glass-panel rounded-[3rem] overflow-hidden border-l border-white/5 shadow-2xl">
+            <div class="p-8 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
+                <div>
+                    <h3 class="font-black text-xl uppercase tracking-tighter">Current Batch</h3>
+                    <p class="text-[10px] font-mono text-slate-500 mt-1" x-text="orderId"></p>
+                </div>
+                <button @click="cart = []" class="text-[10px] font-bold text-red-500/50 hover:text-red-500 uppercase tracking-widest transition-colors">Clear All</button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
+                <div x-show="cart.length === 0" class="h-full flex flex-col items-center justify-center text-slate-600 opacity-30">
+                    <i class="fas fa-box-open text-5xl mb-4"></i>
+                    <p class="font-mono text-xs uppercase tracking-[0.3em]">System Idle</p>
+                </div>
+
+                <template x-for="(item, index) in cart" :key="index">
+                    <div class="flex items-center gap-4 p-4 rounded-3xl bg-white/[0.03] border border-white/5 hover:border-cyber-moss/20 transition-all group">
+                        <div class="w-14 h-14 bg-black p-2 rounded-2xl shrink-0 flex items-center justify-center">
+                            <img :src="item.img" class="max-w-full max-h-full object-contain">
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-bold truncate text-white" x-text="item.name"></p>
+                            <p class="text-cyber-moss font-mono text-[10px] mt-1">
+                                <span x-text="item.qty"></span> UNIT(S) @ ₱<span x-text="item.price.toFixed(2)"></span>
+                            </p>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-black text-sm text-white">₱<span x-text="(item.price * item.qty).toFixed(2)"></span></p>
+                            <button @click="cart.splice(index, 1)" class="text-[10px] text-slate-600 hover:text-red-400 font-bold uppercase transition-colors mt-1">Void</button>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <div class="p-8 bg-black/60 border-t border-white/10">
+                <div class="space-y-3 mb-8">
+                    <div class="flex justify-between text-xs font-mono text-slate-500 uppercase">
+                        <span>Subtotal</span>
+                        <span>₱<span x-text="getTotal().toLocaleString()"></span></span>
+                    </div>
+                    <div class="flex justify-between text-xs font-mono text-slate-500 uppercase">
+                        <span>Tax (Inc)</span>
+                        <span>₱0.00</span>
+                    </div>
+                    <div class="pt-4 border-t border-white/5 flex justify-between items-end">
+                        <span class="text-sm font-black uppercase tracking-widest text-slate-400">Grand Total</span>
+                        <span class="text-4xl font-black text-cyber-moss tracking-tighter">₱<span x-text="getTotal().toLocaleString()"></span></span>
+                    </div>
+                </div>
+                
+                <button @click="completeTransaction()" :disabled="cart.length === 0" 
+                        class="w-full py-6 bg-cyber-moss text-cyber-black font-black rounded-[2rem] shadow-[0_0_30px_rgba(134,239,172,0.2)] hover:brightness-110 hover:scale-[1.01] active:scale-95 transition-all disabled:opacity-10 disabled:grayscale uppercase tracking-[0.2em] text-sm">
+                    Finalize Transaction
+                </button>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        function veloxPOS() {
+            return {
+                search: '',
+                activeCat: 'ALL PRODUCTS',
+                showConfig: false,
+                isAdding: false,
+                selectedProduct: null,
+                configQty: 1,
+                // Your Deployment Link
+                webappUrl: 'https://script.google.com/macros/s/AKfycbySFWs5ZrnO6ygvLHuIK8v7dCCAUtkEQ66lWZ_NqawdtSkMOtikubZcswsMZTtbllZljA/exec',
+                orderId: 'TERM-ID: ' + Math.random().toString(36).substr(2, 6).toUpperCase(),
+                categories: ['ALL PRODUCTS', 'SARDINES', 'MEATS', 'VEGETABLES'],
+                toasts: [],
+                products: [
+                    { id: 101, cat: 'SARDINES', name: 'Ligo Sardines (Red)', price: 23.50, img: 'https://philammarket.com/cdn/shop/products/IMG_2960_850x.jpg' },
+                    { id: 102, cat: 'SARDINES', name: '555 Sardines (Tomato)', price: 28.00, img: 'https://philammarket.com/cdn/shop/products/IMG_2963_850x.jpg' },
+                    { id: 103, cat: 'SARDINES', name: 'Mega Sardines', price: 26.00, img: 'https://vhasianmart.com/cdn/shop/files/D7367005-2DE7-4B77-87BB-20E9B769C218.jpg' },
+                    { id: 104, cat: 'SARDINES', name: 'Century Tuna Flakes', price: 52.00, img: 'https://admin.merrymartwholesale.com/storage/upload/assets/PulmuxA6WktY14h1PmzsgYiWq9UL5FQg87vIxxNP.jpg' },
+                    { id: 105, cat: 'SARDINES', name: 'Youngs Town Sardines', price: 30.00, img: 'https://www.magicstarsupermarket.com/cdn/shop/products/YOUNGSTOWNSARDGRN425GM_580x.jpg' },
+                    { id: 106, cat: 'MEATS', name: 'Delimondo Ranch Corned Beef', price: 65.00, img: 'https://www.shopfreshandgreen.com/cdn/shop/files/Screenshot_30-3-2025_183344_ever.ph_530x@2x.jpg' },
+                    { id: 107, cat: 'MEATS', name: 'SPAM Lite Luncheon Meat', price: 120.00, img: 'https://imgs.search.brave.com/7mx0QZrmA-5XsBouZGBDFC0YjVnor2KAes5BwPEakNA/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly9pNS5w/ZWFwb2QuY29tL2Mv/SVIvSVJBWTkuanBn' },
+                    { id: 108, cat: 'MEATS', name: 'Purefoods Sisig', price: 42.50, img: 'https://zbga.shopsuki.ph/cdn/shop/files/102056069_1_800x.png' },
+                    { id: 111, cat: 'VEGETABLES', name: 'Hunts Pork and Beans', price: 50.00, img: 'https://www.kuyastindahan.co.uk/images/hunts-pork-beans-230g-p333-1810_medium.jpg' },
+                    { id: 113, cat: 'MEATS', name: 'Ma Ling Luncheon Meat', price: 160.00, img: 'https://www.orientalmart.co.uk/_next/image?url=https://cdn.shopify.com/s/files/1/0802/5600/8477/files/48b3cd4b-5a8c-4e94-856a-37b32e674c21_f3b5ca5c-a720-4d7f-b589-33f88a38d660.jpg&w=3840&q=75' },
+                    { id: 114, cat: 'MEATS', name: 'Argentina Corned Beef', price: 36.00, img: 'https://my-pinoy-store.s3.cdn-upgates.com/_cache/9/9/99820616261953c37d84576f45ce3ec6-75d4773a51bf3c-corned-beef-argentina.jpg' },
+                    { id: 115, cat: 'VEGETABLES', name: 'Del Monte Whole Kernel Corn', price: 50.50, img: 'https://www.instacart.com/assets/domains/product-image/file/large_ca83c4d6-3505-4302-9022-531c2a42daac.jpeg'}
+                ],
+                cart: [],
+
+                get filteredProducts() {
+                    return this.products.filter(p => {
+                        const matchSearch = p.name.toLowerCase().includes(this.search.toLowerCase());
+                        const matchCat = this.activeCat === 'ALL PRODUCTS' || p.cat === this.activeCat;
+                        return matchSearch && matchCat;
+                    });
+                },
+
+                openConfig(product) {
+                    this.selectedProduct = product;
+                    this.configQty = 1;
+                    this.isAdding = false;
+                    this.showConfig = true;
+                },
+
+                calculateConfigTotal() {
+                    if (!this.selectedProduct) return "0.00";
+                    return (this.selectedProduct.price * this.configQty).toFixed(2);
+                },
+
+                addToast(title, msg) {
+                    const id = Date.now();
+                    this.toasts.push({ id, title, msg });
+                    setTimeout(() => {
+                        this.toasts = this.toasts.filter(t => t.id !== id);
+                    }, 3000);
+                },
+
+                confirmAddToCart() {
+                    this.isAdding = true;
+                    setTimeout(() => {
+                        let existing = this.cart.find(i => i.id === this.selectedProduct.id);
+                        if (existing) {
+                            existing.qty += this.configQty;
+                        } else {
+                            this.cart.push({ ...this.selectedProduct, qty: this.configQty });
+                        }
+                        this.addToast('Entry Logged', `${this.configQty}x ${this.selectedProduct.name} synced.`);
+                        setTimeout(() => {
+                            this.showConfig = false;
+                            this.isAdding = false;
+                        }, 800);
+                    }, 400);
+                },
+
+                getTotal() {
+                    return this.cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+                },
+
+                completeTransaction() {
+                    if (this.cart.length === 0) return;
+
+                    // Show a "Processing" toast
+                    this.addToast('Processing', 'Syncing with Google Systems...');
+
+                    const transactionData = {
+                        orderId: this.orderId,
+                        total: this.getTotal(),
+                        items: this.cart.map(i => `${i.qty}x ${i.name}`).join(', ')
+                    };
+
+                    // LOGIC: If inside Google Apps Script, use google.script.run
+                    // If running locally, use a POST request to your URL
+                    if (typeof google !== 'undefined' && google.script && google.script.run) {
+                        google.script.run
+                            .withSuccessHandler(() => this.finalizeUI())
+                            .saveSale(transactionData);
+                    } else {
+                        // External/Local Fallback
+                        fetch(this.webappUrl, {
+                            method: 'POST',
+                            mode: 'no-cors', // Essential for Apps Script
+                            cache: 'no-cache',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(transactionData)
+                        })
+                        .then(() => {
+                            this.finalizeUI();
+                        })
+                        .catch(err => {
+                            console.error('Sync Error:', err);
+                            this.addToast('Error', 'Connection failed. Check console.');
+                        });
+                    }
+                },
+
+                // Helper function to clean up UI after success
+                finalizeUI() {
+                    this.addToast('System Sync', 'Data Saved & Email Sent');
+                    this.cart = [];
+                    this.orderId = 'TERM-ID: ' + Math.random().toString(36).substr(2, 6).toUpperCase();
+                }
+            }
+        }
+    </script>
+</body>
+</html>
