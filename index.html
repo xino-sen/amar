@@ -6,10 +6,18 @@
     <title>AMAR CANNED GOODS | Elite Terminal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
     <script>
+        // Initialize EmailJS with your Public Key
+        (function() {
+            emailjs.init("YOUR_PUBLIC_KEY"); // Replace with your actual EmailJS Public Key
+        })();
+
         tailwind.config = {
             theme: {
                 extend: {
@@ -257,8 +265,8 @@
                 toasts: [],
                 cart: [],
                 orderId: 'TERM-ID: ' + Math.random().toString(36).substr(2, 6).toUpperCase(),
-                webappUrl: 'https://script.google.com/macros/s/AKfycbxwelp3IKMTuBScfvOcpVdbmfTcXRhwfj3GlWlDJmuSBOInIFJQSSKY-WyHA8u0lzMqCQ/exec',
-                categories: ['ALL PRODUCTS'],
+                // Ensure categories match the 'cat' property in products exactly
+                categories: ['ALL PRODUCTS', 'SARDINES', 'MEATS', 'VEGETABLES'],
                 products: [
                     { id: 101, cat: 'SARDINES', name: 'Ligo Sardines (Red)', price: 23.50, img: 'https://philammarket.com/cdn/shop/products/IMG_2960_850x.jpg' },
                     { id: 102, cat: 'SARDINES', name: '555 Sardines (Tomato)', price: 28.00, img: 'https://philammarket.com/cdn/shop/products/IMG_2963_850x.jpg' },
@@ -266,25 +274,33 @@
                     { id: 104, cat: 'SARDINES', name: 'Century Tuna Flakes', price: 52.00, img: 'https://admin.merrymartwholesale.com/storage/upload/assets/PulmuxA6WktY14h1PmzsgYiWq9UL5FQg87vIxxNP.jpg' },
                     { id: 105, cat: 'SARDINES', name: 'Youngs Town Sardines', price: 30.00, img: 'https://www.magicstarsupermarket.com/cdn/shop/products/YOUNGSTOWNSARDGRN425GM_580x.jpg' },
                     { id: 106, cat: 'MEATS', name: 'Delimondo Ranch Corned Beef', price: 65.00, img: 'https://www.shopfreshandgreen.com/cdn/shop/files/Screenshot_30-3-2025_183344_ever.ph_530x@2x.jpg' },
-                    { id: 107, cat: 'MEATS', name: 'SPAM Lite Luncheon Meat', price: 120.00, img: 'https://imgs.search.brave.com/7mx0QZrmA-5XsBouZGBDFC0YjVnor2KAes5BwPEakNA/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly9pNS5w/ZWFwb2QuY29tL2Mv/SVIvSVJBWTkuanBn' },
+                    { id: 107, cat: 'MEATS', name: 'SPAM Lite Luncheon Meat', price: 120.00, img: 'https://i5.walmartimages.com/asr/70938f71-678d-4e20-96f7-111054371725.75333f2022716183984e1837b98f5a6a.jpeg' },
                     { id: 108, cat: 'MEATS', name: 'Purefoods Sisig', price: 42.50, img: 'https://zbga.shopsuki.ph/cdn/shop/files/102056069_1_800x.png' },
                     { id: 111, cat: 'VEGETABLES', name: 'Hunts Pork and Beans', price: 50.00, img: 'https://www.kuyastindahan.co.uk/images/hunts-pork-beans-230g-p333-1810_medium.jpg' },
                     { id: 113, cat: 'MEATS', name: 'Ma Ling Luncheon Meat', price: 160.00, img: 'https://www.orientalmart.co.uk/_next/image?url=https://cdn.shopify.com/s/files/1/0802/5600/8477/files/48b3cd4b-5a8c-4e94-856a-37b32e674c21_f3b5ca5c-a720-4d7f-b589-33f88a38d660.jpg&w=3840&q=75' },
                     { id: 114, cat: 'MEATS', name: 'Argentina Corned Beef', price: 36.00, img: 'https://my-pinoy-store.s3.cdn-upgates.com/_cache/9/9/99820616261953c37d84576f45ce3ec6-75d4773a51bf3c-corned-beef-argentina.jpg' },
-                    { id: 115, cat: 'VEGETABLES', name: 'Del Monte Whole Kernel Corn', price: 50.50, img: 'https://www.instacart.com/assets/domains/product-image/file/large_ca83c4d6-3505-4302-9022-531c2a42daac.jpeg'}
+                    { id: 115, cat: 'VEGETABLES', name: 'Del Monte Whole Kernel Corn', price: 50.50, img: 'https://www.instacart.com/assets/domains/product-image/file/large_ca83c4d6-3505-4302-9022-531c2a42daac.jpeg' }, // Added missing comma here
+                    { id: 116, cat: 'MEATS', name: 'Pure Foods Corned Beef', price: 39.50, img: 'https://www.oceanicsupermarket.com/wp-content/uploads/2024/10/purefoods-corned-beef-210g.jpg' },
+                    { id: 117, cat: 'MEATS', name: 'CDO Karne Norte', price: 45.00, img: 'https://shopsuki.ph/cdn/shop/files/102055357_800x.png' },
+                    { id: 118, cat: 'SARDINES', name: 'Uni-Pak', price: 32.00, img: 'https://demo-store-grocery.myshopify.com/cdn/shop/products/robinsons_370181_370181-1_large.jpg' },
+                    { id: 119, cat: 'MEATS', name: 'Lucky 7', price: 45.00, img: 'https://aaashoppingcenter.ph/cdn/shop/files/005b67706d98380be5f95316a268a7653.jpg' },
+                    { id: 120, cat: 'MEATS', name: 'Ligo Corned Beef', price: 38.00, img: 'https://tse4.mm.bing.net/th/id/OIP.Aa2KKprF6ij9_rBVW8sjqwAAAA?pid=Api&P=0&h=220' }
                 ],
 
                 handleLogin() {
+                    if (!this.loginData.user || !this.loginData.pass) return;
                     this.loggingIn = true;
-                    // Mock check - change this to your desired credentials
+                    
+                    // Simulate network delay
                     setTimeout(() => {
                         if(this.loginData.user === 'admin' && this.loginData.pass === '1234') {
                             this.authenticated = true;
+                            this.addToast('Welcome', 'Terminal Session Initialized');
                         } else {
-                            alert('ACCESS DENIED');
+                            alert('ACCESS DENIED: Invalid Terminal Credentials');
                         }
                         this.loggingIn = false;
-                    }, 1200);
+                    }, 1000);
                 },
 
                 get filteredProducts() {
@@ -304,7 +320,7 @@
 
                 calculateConfigTotal() {
                     if (!this.selectedProduct) return "0.00";
-                    return (this.selectedProduct.price * this.configQty).toFixed(2);
+                    return (this.selectedProduct.price * this.configQty).toLocaleString(undefined, {minimumFractionDigits: 2});
                 },
 
                 addToast(title, msg) {
@@ -323,7 +339,10 @@
                             this.cart.push({ ...this.selectedProduct, qty: this.configQty });
                         }
                         this.addToast('Entry Logged', `${this.configQty}x ${this.selectedProduct.name} synced.`);
-                        setTimeout(() => { this.showConfig = false; this.isAdding = false; }, 800);
+                        setTimeout(() => { 
+                            this.showConfig = false; 
+                            this.isAdding = false; 
+                        }, 500);
                     }, 400);
                 },
 
@@ -333,13 +352,29 @@
 
                 completeTransaction() {
                     if (this.cart.length === 0) return;
-                    this.addToast('Processing', 'Syncing with Google Systems...');
-                    // Add your fetch logic here as before
-                    setTimeout(() => {
-                        this.addToast('System Sync', 'Data Saved & Email Sent');
-                        this.cart = [];
-                        this.orderId = 'TERM-ID: ' + Math.random().toString(36).substr(2, 6).toUpperCase();
-                    }, 1500);
+                    this.addToast('Processing', 'Transmitting via EmailJS...');
+
+                    const itemsList = this.cart.map(item => 
+                        `${item.qty}x ${item.name} - ₱${(item.price * item.qty).toFixed(2)}`
+                    ).join('\n');
+
+                    const templateParams = {
+                        order_id: this.orderId,
+                        total_amount: `₱${this.getTotal().toLocaleString()}`,
+                        items_details: itemsList,
+                        timestamp: new Date().toLocaleString()
+                    };
+
+                    emailjs.send('service_u8h01jm', 'QXcIGiU07o_fyNTix', templateParams)
+                        .then(() => {
+                            this.addToast('Success', 'Transaction Record Dispatched');
+                            this.cart = [];
+                            this.orderId = 'TERM-ID: ' + Math.random().toString(36).substr(2, 6).toUpperCase();
+                        })
+                        .catch((error) => {
+                            console.error('EmailJS Error:', error);
+                            this.addToast('Sync Failed', 'Check EmailJS Configuration');
+                        });
                 }
             }
         }
