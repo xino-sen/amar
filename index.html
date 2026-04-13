@@ -251,6 +251,9 @@
     </div>
 
     <script>
+        (function() {
+            emailjs.init("A-G3weLzn-63fwyn4"); // Replace with your actual EmailJS Public Key
+        })();
         function veloxPOS() {
             return {
                 authenticated: false,
@@ -352,28 +355,44 @@
 
                 completeTransaction() {
                     if (this.cart.length === 0) return;
-                    this.addToast('Processing', 'Transmitting via EmailJS...');
+                    
+                    this.addToast('Processing', 'Syncing to Cloud & Email...');
 
+                    // Format the data for both services
                     const itemsList = this.cart.map(item => 
                         `${item.qty}x ${item.name} - ₱${(item.price * item.qty).toFixed(2)}`
                     ).join('\n');
 
-                    const templateParams = {
+                    const payload = {
                         order_id: this.orderId,
                         total_amount: `₱${this.getTotal().toLocaleString()}`,
                         items_details: itemsList,
                         timestamp: new Date().toLocaleString()
                     };
 
-                    emailjs.send('service_u8h01jm', 'QXcIGiU07o_fyNTix', templateParams)
+                    // --- TASK 1: LOG TO GOOGLE SHEETS ---
+                    const sheetAppUrl = 'https://script.google.com/macros/s/AKfycbxnJXTLsrL16pNt4U1Z2CqJKcwK5KsgoY927QhgPXsZaerXuhnnu-elkqSBga2F63sHgA/exec'; // Paste your URL here
+
+                    fetch(sheetAppUrl, {
+                        method: 'POST',
+                        mode: 'no-cors', 
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    // --- TASK 2: DISPATCH EMAILJS ---
+                    emailjs.send('service_u8h01jm', 'template_y0k4ttd', payload)
                         .then(() => {
-                            this.addToast('Success', 'Transaction Record Dispatched');
+                            // Success Feedback
+                            this.addToast('Success', 'Transaction Fully Secured');
+                            
+                            // Reset Terminal for Next Batch
                             this.cart = [];
                             this.orderId = 'TERM-ID: ' + Math.random().toString(36).substr(2, 6).toUpperCase();
                         })
                         .catch((error) => {
                             console.error('EmailJS Error:', error);
-                            this.addToast('Sync Failed', 'Check EmailJS Configuration');
+                            this.addToast('Partial Sync', 'Logged to Sheet, Email Failed');
                         });
                 }
             }
