@@ -117,8 +117,6 @@
                 </div>
                 <div class="flex flex-col gap-8 text-slate-500">
                     <button class="hover:text-cyber-moss transition-colors"><i class="fas fa-th-large text-xl text-cyber-moss"></i></button>
-                    <button class="hover:text-white transition-colors"><i class="fas fa-history text-xl"></i></button>
-                    <button class="hover:text-white transition-colors"><i class="fas fa-cog text-xl"></i></button>
                 </div>
             </div>
             <button @click="authenticated = false" class="text-slate-600 hover:text-red-400 transition-colors"><i class="fas fa-sign-out-alt text-xl"></i></button>
@@ -252,7 +250,7 @@
 
     <script>
         (function() {
-            emailjs.init("A-G3weLzn-63fwyn4"); // Replace with your actual EmailJS Public Key
+            emailjs.init("n24GtyKetz_QftQco"); // Replace with your actual EmailJS Public Key
         })();
         function veloxPOS() {
             return {
@@ -381,7 +379,7 @@
                     });
 
                     // --- TASK 2: DISPATCH EMAILJS ---
-                    emailjs.send('service_u8h01jm', 'template_y0k4ttd', payload)
+                    emailjs.send('service_v4n4p6s', 'template_busbk4p', payload)
                         .then(() => {
                             // Success Feedback
                             this.addToast('Success', 'Transaction Fully Secured');
